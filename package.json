@@ -1,0 +1,15 @@
+{
+  "name": "animemanagerserver",
+  "version": "1.0.0",
+  "description": "Backend for animemanager",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app"
+  },
+  "author": "Albert Jin",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
