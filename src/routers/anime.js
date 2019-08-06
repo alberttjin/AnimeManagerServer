@@ -62,6 +62,8 @@ router.post('/anime/add', auth, async (req, res) => {
         user = req.user
         const { ep, url } = req.body
         let title = req.body.title
+        console.log(title)
+        console.log(ep)
 
         if (!titleExists(user.animes, title)) {
             let maxEp = await getAsync(title)
