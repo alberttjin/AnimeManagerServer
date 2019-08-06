@@ -3,7 +3,6 @@ const mongoose = require('mongoose')
 const animeSchema = mongoose.Schema({
     title: {
         type: String,
-        unique: true,
     },
     ep: {
         type: Number,
