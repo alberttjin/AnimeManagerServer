@@ -3,7 +3,14 @@ const Anime = require('../models/Anime')
 const auth = require('../middleware/auth')
 const getAnimeFromAniList = require('../api.js')
 const redis = require('redis')
-const client = redis.createClient({host : process.env.REDIS_URL || 'localhost'})
+let client
+if (process.env.REDISTOGO_URL) {
+    const rtg   = require("url").parse(process.env.REDISTOGO_URL);
+    client = redis.createClient(rtg.port, rtg.hostname);
+    redis.auth(rtg.auth.split(":")[1]);
+} else {
+    client = redis.createClient()
+}
 const {promisify} = require('util');
 const getAsync = promisify(client.get).bind(client);
 
