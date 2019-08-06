@@ -1,7 +1,11 @@
 const express = require('express')
 const Anime = require('../models/Anime')
 const auth = require('../middleware/auth')
-const getAnime = require('../api.js')
+const getAnimeFromAniList = require('../api.js')
+const redis = require('redis')
+const client = redis.createClient()
+const {promisify} = require('util');
+const getAsync = promisify(client.get).bind(client);
 
 const router = express.Router()
 
@@ -15,11 +19,34 @@ const titleExists = (animes, title) => {
     return false;
 }
 
-router.get('/anime', auth, async(req, res) => {
+router.get('/animes', auth, async(req, res) => {
     // Get all the anime for a specific user
     user = req.user
-    anime = user.animes
-    res.send(anime)
+    let animes = user.animes
+    const newAnimes = await Promise.all(animes.map(async(anime) => {
+        const maxEp = await getAsync(anime.title)
+        return {
+            title: anime.title,
+            ep: anime.ep,
+            url: anime.url,
+            maxEp,
+        }
+    }))
+    res.send(newAnimes)
+})
+
+router.get('/anime/:title', auth, async(req, res) => {
+    // Get a specific anime
+    user = req.user
+    const title = req.params.title
+    const animes = user.animes
+    let animeToSend;
+    animes.forEach((anime) => {
+        if (anime.title == title) {
+            animeToSend = anime
+        }
+    });
+    res.send(animeToSend)
 })
 
 router.post('/anime/add', auth, async (req, res) => {
@@ -30,6 +57,12 @@ router.post('/anime/add', auth, async (req, res) => {
         let title = req.body.title
 
         if (!titleExists(user.animes, title)) {
+            let maxEp = await getAsync(title)
+            if (!maxEp) {
+                const aniListInfo = await getAnimeFromAniList(title)
+                maxEp = aniListInfo['maxEpisode']
+                client.set(title, maxEp)
+            }
             const animeToAdd = new Anime({
                 title,
                 ep,
@@ -38,9 +71,16 @@ router.post('/anime/add', auth, async (req, res) => {
             await animeToAdd.save()
             user.animes = user.animes.concat(animeToAdd)
             await user.save()
+            const toSend = {
+                title,
+                ep,
+                url,
+                maxEp
+            }
+            res.send(toSend)
+        } else {
+            res.status(405).send({error: 'That anime already exists!'})
         }
-
-        res.send(user.animes)
     } catch (error) {
         res.status(500).send(error)
     }

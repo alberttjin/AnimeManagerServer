@@ -1,4 +1,5 @@
 const fetch = require("node-fetch");
+
 const getAnimeFromAniList = async (title) => {
     const query = `
         query ($title: String) {
@@ -34,12 +35,11 @@ const getAnimeFromAniList = async (title) => {
 
     const response = await fetch(url, options)
     const json = await response.json()
-
     const newTitle = json.data.Media.title.english
     const airing = !!json.data.Media.nextAiringEpisode
-    let maxEpisode = json.data.Media.episodes
+    let maxEpisode = parseInt(json.data.Media.episodes)
     if (airing) {
-        maxEpisode = json.data.Media.nextAiringEpisode
+        maxEpisode = parseInt(json.data.Media.nextAiringEpisode.episode, 10) - 1
     }
 
     const info = {
