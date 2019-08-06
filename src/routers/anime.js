@@ -89,6 +89,7 @@ router.post('/anime/add', auth, async (req, res) => {
             res.status(405).send({error: 'That anime already exists!'})
         }
     } catch (error) {
+        console.log(error)
         res.status(500).send(error)
     }
 })
