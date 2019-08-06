@@ -4,7 +4,7 @@ const userRouter = require('./routers/user')
 const animeRouter = require('./routers/anime')
 const maxEpFill = require('./cron/maxEpFill')
 
-const port = process.env.PORT
+const port = process.env.PORT || 3000
 require('./db/connect')
 
 const app = express()
